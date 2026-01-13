@@ -6,7 +6,7 @@ Player::Player(){
     position.y = (GetScreenHeight() - image.height) / 2;
     frameRec = { 0.0f, 0.0f, (float)image.width/6, (float)image.height };
     frameCounter = 0;
-    framesSpeed = 8;
+    framesSpeed = 4;
     currentFrame = 0;
 }
 
@@ -20,15 +20,34 @@ void Player::Draw(){
 }
 
 void Player::Update(){
-    frameCounter++;
-
+    frameCounter ++;
     if (frameCounter >= (60/framesSpeed))
     {
         frameCounter = 0;
         currentFrame++;
 
-        if (currentFrame > 5) currentFrame = 0;
+        if (currentFrame > 1) currentFrame = 0;
 
         frameRec.x = (float)currentFrame*(float)image.width/6;
+    }
+    
+    
+
+    
+}
+
+void Player::Move(){
+    if(IsKeyDown(KEY_W)){
+        position.y -= 5;
+    }
+    if(IsKeyDown(KEY_S)){
+        position.y += 5;
+    }
+    if(IsKeyDown(KEY_D)){
+        position.x += 5;
+        
+    }
+    if(IsKeyDown(KEY_A)){
+        position.x -= 5;
     }
 }

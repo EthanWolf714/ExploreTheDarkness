@@ -8,6 +8,7 @@ public:
     ~Game();
     void Draw();
     void Update();
+    void HandleInput();
 
 private:
     Player player;

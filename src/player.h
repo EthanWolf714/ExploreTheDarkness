@@ -10,6 +10,8 @@ class Player{
         void Update();
         void Draw();
         void GetPosition();
+        void Move();
+        void Animate();
 
         
     private:
