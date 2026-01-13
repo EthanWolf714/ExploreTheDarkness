@@ -29,7 +29,7 @@ int main()
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground(BLUE);
+            ClearBackground(BLACK);
             game.Draw();
 
             //DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
