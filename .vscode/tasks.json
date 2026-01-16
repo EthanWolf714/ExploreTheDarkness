@@ -8,9 +8,8 @@
             "args": [
                 "-o",
                 "${workspaceFolder}/build/game.exe",
-                "${workspaceFolder}/src/main.cpp",
-                "${workspaceFolder}/src/game.cpp",
-                "${workspaceFolder}/src/player.cpp",
+                "${workspaceFolder}/src/*.cpp",
+                "-I${workspaceFolder}/include",
                 "-IC:/raylib/include",
                 "-LC:/raylib/lib",
                 "-lraylib",
@@ -33,9 +32,8 @@
             "args": [
                 "-o",
                 "${workspaceFolder}/build/game.exe",
-                "${workspaceFolder}/src/main.cpp",
-                "${workspaceFolder}/src/game.cpp",
-                "${workspaceFolder}/src/player.cpp",
+                "${workspaceFolder}/src/*.cpp",
+                "-I${workspaceFolder}/include",
                 "-IC:/raylib/include",
                 "-LC:/raylib/lib",
                 "-lraylib",
@@ -63,7 +61,8 @@
         {
             "label": "CMake build",
             "type": "shell",
-            "command":[
+            "command":"cmake",
+            "args": [
                 "--build",
                 "build"
             ],
