@@ -12,15 +12,34 @@ else()
 endif()
 
 
-# Find raylib (system wide installation)
-find_package(raylib 5.0 QUIET)
-
-if(NOT raylib_FOUND)
-    message(STATUS "raylib not found, attempting to use pkg-config")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(raylib REQUIRED raylib)
+# Platform detection
+if(EMSCRIPTEN)
+    set(PLATFORM "Web")
+else()
+    set(PLATFORM "Desktop")
 endif()
 
+# Find raylib (system wide installation)
+if(NOT EMSCRIPTEN)
+    find_package(raylib 5.0 QUIET)
+        
+    if(NOT raylib_FOUND)
+        message(STATUS "raylib not found, attempting to use pkg-config")
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(raylib REQUIRED raylib)
+    endif()
+else()
+# For web builds, raylib is included with emscription
+    find_package(raylib 5.0 QUIET)
+    if(NOT raylib_FOUND)
+        include(FetchContent)
+        FetchContent_Declare(
+            raylib
+            URL https://github.com/raysan5/raylib/archive/refs/tags/5.0.tar.gz
+        )
+        FetchContent_MakeAvailable(raylib)
+    endif()
+endif()
 
 #collect all source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -28,32 +47,66 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 #create executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+# Add include directory
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    ${CMAKE_SOURCE_DIR}/include
+)
+
 # Link raylib
 target_link_libraries(${PROJECT_NAME} raylib)
 
-# Platform-specific libraries
-if(WIN32)
-    target_link_libraries(${PROJECT_NAME} opengl32 gdi32 winmm)
-endif()
+#Platform-specific settings
+if(EMSCRIPTEN)
+    #Web-sepcific
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
+     # Emscripten flags
+    set(EMSCRIPTEN_FLAGS
+        "-s USE_GLFW=3"
+        "-s ASSERTIONS=1"
+        "-s WASM=1"
+        "-s ASYNCIFY"
+        "--shell-file ${CMAKE_SOURCE_DIR}/web/shell.html"
+    )
 
-# Platform-specific libraries
-if(WIN32)
-    target_link_libraries(${PROJECT_NAME} opengl32 gdi32 winmm)
-endif()
-
-# Build type settings
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    if(WIN32)
-        # Hide console window in release mode
-        set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    #Add assets to embed 
+    if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
+        list(APPEND EMSCRIPTEN_FLAGS "--preload-file ${CMAKE_SOURCE_DIR}/assets@assets")
     endif()
-    target_compile_options(${PROJECT_NAME} PRIVATE -O2)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(${PROJECT_NAME} PRIVATE -g)
-endif()
+    
+    target_compile_options(${PROJECT_NAME} PUBLIC ${EMSCRIPTEN_FLAGS})
+    target_link_options(${PROJECT_NAME} PUBLIC ${EMSCRIPTEN_FLAGS})
 
-# Output to build directory
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+    #output directoru for web build
+    set_target_properties(${PROJECT_NAME} PROPERTIES 
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/web
+    )
+elseif(WIN32)
+    #Windows-specific libraries
+    target_link_libraries(${PROJECT_NAME} opengl32 gdi32 winm)
+
+
+    # Build type settings
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        if(WIN32)
+            # Hide console window in release mode
+            set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+        endif()
+        target_compile_options(${PROJECT_NAME} PRIVATE -O2)
+    elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(${PROJECT_NAME} PRIVATE -g)
+    endif()
+else()
+    #linux/Mac - no extra libraries needed
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(${PROJECT_NAME} PRIVATE -02)
+    elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(${PROJECT_NAME} PRIVATE -g)
+    endif()
+endif()
+# Output to build directory (for desktop)
+if(NOT EMSCRIPTEN)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endif()
