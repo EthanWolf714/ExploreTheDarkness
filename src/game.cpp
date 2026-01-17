@@ -21,3 +21,8 @@ void Game::Draw(){
 void Game::HandleInput(){
     player.Move();
 }
+
+Vector2 Game::GetPlayerPosition(){
+    return player.GetPosition();
+}
+

@@ -9,7 +9,7 @@ class Player{
         ~Player();
         void Update();
         void Draw();
-        void GetPosition();
+        Vector2 GetPosition();
         void Move();
         void AnimateLeftRight();
         void AnimateUpDown();

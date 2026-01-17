@@ -129,3 +129,7 @@ void Player::AnimateUpDown(){
         
     }
 }
+
+Vector2 Player::GetPosition(){
+    return position;
+}

@@ -1,5 +1,8 @@
 #include "raylib.h"
 #include "game.h"
+#include <stddef.h> /* NULL */
+#include <stdlib.h> /* EXIT_FAILURE, EXIT_SUCCESS */
+
 #define RAYTMX_IMPLEMENTATION
 #include "raytmx.h"
 
@@ -12,6 +15,7 @@ int main()
     //--------------------------------------------------------------------------------------
     const int screenWidth = 800;
     const int screenHeight = 450;
+   // const float panSpeed = 150.f; // pixels per second
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
 
@@ -20,6 +24,18 @@ int main()
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+    TmxMap* map = LoadTMX("/build/maps/test-map.tmx");
+    if(map == NULL){
+        TraceLog(LOG_ERROR, "Failed to load TMX map");
+        CloseWindow();
+        return EXIT_FAILURE;
+    }
+
+    //create camera, modified to look at the player
+
+    Camera2D camera;
+    camera.target = game.GetPlayerPosition();
+    camera.zoom = 0.0f;
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -32,7 +48,14 @@ int main()
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(BLACK);
-            game.Draw();
+            BeginMode2D(camera);
+            {
+                game.Draw();
+
+                AnimateTMX(map);
+                DrawTMX(map, NULL, NULL, 0,0,WHITE);
+            }
+            EndMode2D();
 
             //DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
 
@@ -42,6 +65,7 @@ int main()
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    UnloadTMX(map);
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
